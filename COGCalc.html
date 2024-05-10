@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Scatter Plot with COG</title>
+    <!-- Load Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            height: 100vh;
+        }
+
+        #plot-container {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        #plot {
+            width: 85%;
+            height: 90%;
+        }
+
+        #controls {
+            width: 35%;
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            resize: none;
+        }
+
+        button {
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+
+        #cogProperties {
+            flex-grow: 1;
+            height: 100%;
+            resize: none;
+            margin-top: 20px;
+            padding: 10px;
+            white-space: pre-wrap; /* Set white-space property */
+            width: 100%; /* You can adjust this value to make the text box wider */
+        }
+    </style>
+</head>
+
+<body>
+    <div id="plot-container">
+        <div id="plot"></div>
+        <div id="controls">
+            <textarea id="coordinates" rows="10" placeholder="Enter coordinates (x, y, z, mass) per line"></textarea>
+            <button onclick="updatePlot()">Plot</button>
+            <textarea id="cogProperties" readonly placeholder="COG Properties"></textarea>
+        </div>
+    </div>
+
+    <script>
+        function updatePlot() {
+            var coordinatesText = document.getElementById('coordinates').value.trim();
+            var coordinatesArray = coordinatesText.split('\n');
+
+            var data = [];
+            var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            var totalMass = 0;
+            var sumX = 0, sumY = 0, sumZ = 0;
+            var cogX = 0, cogY = 0, cogZ = 0;
+
+            var originMarker = {
+                x: [0],
+                y: [0],
+                z: [0],
+                mode: 'markers',
+                marker: {
+                    size: 10,
+                    color: 'red'
+                },
+                type: 'scatter3d',
+                name: 'Origin (0, 0, 0)'
+            };
+
+            data.push(originMarker);
+
+            var maxX = 0, maxY = 0, maxZ = 0;
+            var minX = 0, minY = 0, minZ = 0;
+
+            var cogCalculationSteps = "\nCOG Calculation Steps:\n";
+            var distances = "Distances from COG:\n";
+            var distancesExplicit = "\nDistances from COG (Detailed Calculations):\n";
+
+            // Function to format calculations for readability
+            function formatCalculation(label, x, y, z, mass) {
+                return `${label}: (${x.toFixed(3).padStart(5)} * ${mass}, ${y.toFixed(3).padStart(5)} * ${mass}, ${z.toFixed(3).padStart(5)} * ${mass})`;
+            }
+
+            for (var i = 0; i < coordinatesArray.length; i++) {
+                var coords = coordinatesArray[i].split(',');
+                var mass = parseFloat(coords[3]);
+                var x = parseFloat(coords[0]);
+                var y = parseFloat(coords[1]);
+                var z = parseFloat(coords[2]);
+
+                totalMass += mass;
+                sumX += x * mass;
+                sumY += y * mass;
+                sumZ += z * mass;
+
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
+                maxZ = Math.max(maxZ, z);
+
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                minZ = Math.min(minZ, z);
+
+                var label = labels[i] + " (" + mass + ")";
+
+                var point = {
+                    x: [x],
+                    y: [y],
+                    z: [z],
+                    mode: 'markers+text',
+                    marker: {
+                        size: 8,
+                        symbol: 'circle',
+                        line: {
+                            color: 'rgba(0, 0, 0, 0.14)',
+                            width: 0.5
+                        }
+                    },
+                    type: 'scatter3d',
+                    text: label,
+                    name: 'Point ' + label
+                };
+
+                data.push(point);
+
+                cogCalculationSteps += formatCalculation(labels[i], x, y, z, mass) + '\n';
+            }
+
+            cogX = sumX / totalMass;
+            cogY = sumY / totalMass;
+            cogZ = sumZ / totalMass;
+
+            var cogLabel = "COG (" + totalMass + ")";
+
+            var cogMarker = {
+                x: [cogX],
+                y: [cogY],
+                z: [cogZ],
+                mode: 'markers',
+                marker: {
+                    size: 15,
+                    symbol: 'circle',
+                    color: 'black',
+                    line: {
+                        color: 'white',
+                        width: 1
+                    }
+                },
+                type: 'scatter3d',
+                text: cogLabel,
+                name: cogLabel
+            };
+
+            data.push(cogMarker);
+
+            // Draw lines from COG to each point
+            for (var i = 0; i < coordinatesArray.length; i++) {
+                var coords = coordinatesArray[i].split(',');
+                var x = parseFloat(coords[0]);
+                var y = parseFloat(coords[1]);
+                var z = parseFloat(coords[2]);
+
+                var distance = Math.sqrt(Math.pow(cogX - x, 2) + Math.pow(cogY - y, 2) + Math.pow(cogZ - z, 2)).toFixed(3);
+                distances += `${labels[i]}: ${distance}\n`;
+                distancesExplicit += `${labels[i]}: sqrt((${cogX.toFixed(3)} - ${x})^2 + (${cogY.toFixed(3)} - ${y})^2 + (${cogZ.toFixed(3)} - ${z})^2) = ${distance}\n`;
+
+                var line = {
+                    x: [cogX, x],
+                    y: [cogY, y],
+                    z: [cogZ, z],
+                    mode: 'lines',
+                    line: {
+                        color: 'lightgray',
+                        width: 2
+                    },
+                    type: 'scatter3d',
+                    showlegend: false
+                };
+
+                data.push(line);
+            }
+
+            // Add the COG formula calculation
+            cogCalculationSteps += `\nSum(x * mass) = ${sumX.toFixed(3)}\n`;
+            cogCalculationSteps += `Sum(y * mass) = ${sumY.toFixed(3)}\n`;
+            cogCalculationSteps += `Sum(z * mass) = ${sumZ.toFixed(3)}\n`;
+            cogCalculationSteps += `Total Mass = ${totalMass.toFixed(3)}\n`;
+            cogCalculationSteps += `\nCOG X = Sum(x * mass) / Total Mass = ${sumX.toFixed(3)} / ${totalMass.toFixed(3)} = ${cogX.toFixed(3)}\n`;
+            cogCalculationSteps += `COG Y = Sum(y * mass) / Total Mass = ${sumY.toFixed(3)} / ${totalMass.toFixed(3)} = ${cogY.toFixed(3)}\n`;
+            cogCalculationSteps += `COG Z = Sum(z * mass) / Total Mass = ${sumZ.toFixed(3)} / ${totalMass.toFixed(3)} = ${cogZ.toFixed(3)}\n`;
+
+            var xRange = [minX - Math.abs(minX * 0.25), maxX + Math.abs(maxX * 0.25)];
+            var yRange = [minY - Math.abs(minY * 0.25), maxY + Math.abs(maxY * 0.25)];
+            var zRange = [minZ - Math.abs(minZ * 0.25), maxZ + Math.abs(maxZ * 0.25)];
+
+            var layout = {
+                scene: {
+                    xaxis: { title: 'X Axis', range: xRange },
+                    yaxis: { title: 'Y Axis', range: yRange },
+                    zaxis: { title: 'Z Axis', range: zRange }
+                },
+                margin: { l: 0, r: 0, b: 0, t: 0 },
+                legend: {
+                    orientation: 'v',
+                    y: 0.85,
+                    x: 1.05
+                }
+            };
+
+            Plotly.newPlot('plot', data, layout);
+
+            // Update COG properties text box
+            document.getElementById('cogProperties').value =
+                `COG X: ${cogX.toFixed(3)}\nCOG Y: ${cogY.toFixed(3)}\nCOG Z: ${cogZ.toFixed(3)}\nTotal Mass: ${totalMass.toFixed(3)}\n\n` +
+                distances + cogCalculationSteps + distancesExplicit;
+        }
+    </script>
+</body>
+
+</html>

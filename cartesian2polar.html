@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Scatter Plot with Polar Coordinates</title>
+    <!-- Load Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            height: 100vh;
+        }
+
+        #plot-container {
+            display: flex;
+            flex-grow: 1;
+        }
+
+        #plot {
+            width: 70%;
+            height: 100%;
+        }
+
+        #controls {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+        }
+
+        #coordinates {
+            width: 100%;
+            margin-bottom: 10px;
+            resize: none;
+        }
+
+        #output-container {
+            width: 90%;
+            height: 10%;
+            margin-top: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #explanation-container {
+            width: 90%;
+            height: 30%;
+            margin-top: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        button {
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="plot-container">
+        <div id="plot"></div>
+        <div id="controls">
+            <textarea id="coordinates" rows="10" placeholder="Enter coordinates (x, y, z) per line"></textarea>
+            <button onclick="updatePlot()">Plot</button>
+            <div id="output-container"></div>
+            <div id="explanation-container">
+                <h2>Mathematical and Background Calculations:</h2>
+                <p>1. <strong>Distance (r):</strong> \( r = \sqrt{x^2 + y^2 + z^2} \)<br>
+                    2. <strong>Azimuthal Angle (θ):</strong> \( \theta = \arctan{\frac{y}{x}} \) (converted to degrees)<br>
+                    3. <strong>Polar Angle (φ):</strong> \( \phi = \arccos{\frac{z}{r}} \) (converted to degrees)<br>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updatePlot() {
+            var coordinatesText = document.getElementById('coordinates').value.trim();
+            var coordinatesArray = coordinatesText.split('\n');
+
+            var data = [];
+            var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            var polarInfo = "";
+
+            for (var i = 0; i < coordinatesArray.length; i++) {
+                var coords = coordinatesArray[i].split(',');
+                var x = parseFloat(coords[0]);
+                var y = parseFloat(coords[1]);
+                var z = parseFloat(coords[2]);
+
+                var label = labels[i];
+
+                // Calculate polar coordinates
+                var r = Math.sqrt(x ** 2 + y ** 2 + z ** 2);
+                var theta = Math.atan2(y, x) * (180 / Math.PI);
+                var phi = Math.acos(z / r) * (180 / Math.PI);
+
+                // Add point data
+                var point = {
+                    x: [x],
+                    y: [y],
+                    z: [z],
+                    mode: 'markers+text',
+                    marker: {
+                        size: 8,
+                        symbol: 'circle',
+                        line: {
+                            color: 'rgba(0, 0, 0, 0.14)',
+                            width: 0.5
+                        }
+                    },
+                    type: 'scatter3d',
+                    text: label,
+                    name: 'Point ' + label
+                };
+
+                data.push(point);
+
+                // Add line from origin to point
+                var originToPoint = {
+                    x: [0, x],
+                    y: [0, y],
+                    z: [0, z],
+                    mode: 'lines',
+                    line: {
+                        color: 'rgb(255, 0, 0)',
+                        width: 3
+                    },
+                    type: 'scatter3d',
+                    name: 'Line to Point ' + label
+                };
+
+                data.push(originToPoint);
+
+                // Build polar info string
+                polarInfo += "Point " + label + ": r = " + r.toFixed(2) + ", θ = " + theta.toFixed(2) + "°, φ = " + phi.toFixed(2) + "°<br>";
+            }
+
+            var layout = {
+                scene: {
+                    xaxis: { title: 'X Axis' },
+                    yaxis: { title: 'Y Axis' },
+                    zaxis: { title: 'Z Axis' }
+                },
+                margin: { l: 0, r: 0, b: 0, t: 0 },
+                legend: {
+                    orientation: 'v',
+                    y: 0.85,
+                    x: 1.05
+                }
+            };
+
+            Plotly.newPlot('plot', data, layout);
+
+            // Display polar info
+            document.getElementById('output-container').innerHTML = polarInfo;
+        }
+    </script>
+</body>
+
+</html>
