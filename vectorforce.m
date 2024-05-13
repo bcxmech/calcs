@@ -21,9 +21,16 @@ eq4 = F1x + F2x + F3x + F4x == total_load(1); % Total load equilibrium in x-dire
 eq5 = F1y + F2y + F3y + F4y == total_load(2); % Total load equilibrium in y-direction
 eq6 = F1z + F2z + F3z + F4z == total_load(3); % Total load equilibrium in z-direction
 
-% Solve equations to find unknown forces
+% Additional constraints to ensure at least one component of each force vector is non-zero
+at_least_one_nonzero_constraint = [(F1x ~= 0) | (F1y ~= 0) | (F1z ~= 0), ...
+                                   (F2x ~= 0) | (F2y ~= 0) | (F2z ~= 0), ...
+                                   (F3x ~= 0) | (F3y ~= 0) | (F3z ~= 0), ...
+                                   (F4x ~= 0) | (F4y ~= 0) | (F4z ~= 0)];
+
+% Solve equations subject to additional constraints
 [sol_F1x, sol_F1y, sol_F1z, sol_F2x, sol_F2y, sol_F2z, sol_F3x, sol_F3y, sol_F3z, sol_F4x, sol_F4y, sol_F4z] = ...
-    solve([eq1, eq2, eq3, eq4, eq5, eq6], [F1x, F1y, F1z, F2x, F2y, F2z, F3x, F3y, F3z, F4x, F4y, F4z]);
+    solve([eq1, eq2, eq3, eq4, eq5, eq6, at_least_one_nonzero_constraint], ...
+    [F1x, F1y, F1z, F2x, F2y, F2z, F3x, F3y, F3z, F4x, F4y, F4z]);
 
 % Display results
 disp(['Force 1: [', char(sol_F1x), ', ', char(sol_F1y), ', ', char(sol_F1z), ']']);
