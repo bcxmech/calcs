@@ -1,29 +1,32 @@
-% Define symbolic variables for forces at each point
-syms F1x F1y F1z F2x F2y F2z F3x F3y F3z F4x F4y F4z positive
+% Define the objective function (simple, could be zero as we focus on feasibility)
+objective = @(F) sum(F.^2);  % Quadratic objective to promote smaller force values
 
-% Coordinates of the points (Assuming arbitrary values, modify as per your system)
-p1 = [1, 0, 0];
-p2 = [0, 1, 0];
-p3 = [-1, 0, 0];
-p4 = [0, -1, 0];
+% Initial guesses for the forces
+F0 = ones(12,1);  % Initial guess (all forces start positive)
 
-% Equilibrium equations for forces
-eq1 = F1x + F2x + F3x + F4x == 0;
-eq2 = F1y + F2y + F3y + F4y == 0;
-eq3 = F1z + F2z + F3z + F4z == 1500;
+% Define the non-linear constraints (equilibrium equations)
+nonlcon = @(F) deal([...
+    F(1) + F(4) + F(7) + F(10),    % eq1: Sum of Fx components
+    F(2) + F(5) + F(8) + F(11),    % eq2: Sum of Fy components
+    F(3) + F(6) + F(9) + F(12) - 1500,  % eq3: Sum of Fz components - 1500 (force balance)
+    dot([1, 0, 0], cross([1,0,0], F(1:3))) + dot([0, 1, 0], cross([1,0,0], F(4:6))) + ...
+    dot([-1, 0, 0], cross([1,0,0], F(7:9))) + dot([0, -1, 0], cross([1,0,0], F(10:12))),  % eq4: Moment about x-axis
+    dot([1, 0, 0], cross([0,1,0], F(1:3))) + dot([0, 1, 0], cross([0,1,0], F(4:6))) + ...
+    dot([-1, 0, 0], cross([0,1,0], F(7:9))) + dot([0, -1, 0], cross([0,1,0], F(10:12))),  % eq5: Moment about y-axis
+    dot([1, 0, 0], cross([0,0,1], F(1:3))) + dot([0, 1, 0], cross([0,0,1], F(4:6))) + ...
+    dot([-1, 0, 0], cross([0,0,1], F(7:9))) + dot([0, -1, 0], cross([0,0,1], F(10:12)))  % eq6: Moment about z-axis
+], []);
 
-% Equilibrium equations for moments about origin (0,0,0)
-eq4 = dot(p1, cross([1,0,0], [F1x,F1y,F1z])) + dot(p2, cross([1,0,0], [F2x,F2y,F2z])) + ...
-      dot(p3, cross([1,0,0], [F3x,F3y,F3z])) + dot(p4, cross([1,0,0], [F4x,F4y,F4z])) == 0;
-eq5 = dot(p1, cross([0,1,0], [F1x,F1y,F1z])) + dot(p2, cross([0,1,0], [F2x,F2y,F2z])) + ...
-      dot(p3, cross([0,1,0], [F3x,F3y,F3z])) + dot(p4, cross([0,1,0], [F4x,F4y,F4z])) == 0;
-eq6 = dot(p1, cross([0,0,1], [F1x,F1y,F1z])) + dot(p2, cross([0,0,1], [F2x,F2y,F2z])) + ...
-      dot(p3, cross([0,0,1], [F3x,F3y,F3z])) + dot(p4, cross([0,0,1], [F4x,F4y,F4z])) == 0;
+% Set lower and upper bounds for the force components
+lb = zeros(12,1);  % Lower bounds (force components must be positive)
+ub = [];           % Upper bounds (no upper bounds)
 
-% Solve the system of equations with constraints that each force component must be greater than zero
-sol = solve([eq1, eq2, eq3, eq4, eq5, eq6, F1x > 0, F1y > 0, F1z > 0, F2x > 0, F2y > 0, F2z > 0, ...
-             F3x > 0, F3y > 0, F3z > 0, F4x > 0, F4y > 0, F4z > 0], ...
-             [F1x, F1y, F1z, F2x, F2y, F2z, F3x, F3y, F3z, F4x, F4y, F4z]);
+% Options for fmincon
+options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'sqp');
 
-% Display the solution
-disp(sol);
+% Solve using fmincon
+[F_opt, fval, exitflag, output] = fmincon(objective, F0, [], [], [], [], lb, ub, nonlcon, options);
+
+% Display the optimized forces
+disp('Optimized forces:');
+disp(F_opt);
