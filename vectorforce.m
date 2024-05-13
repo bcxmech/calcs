@@ -1,47 +1,31 @@
-% Define symbolic variables for the components of the unknown forces
-syms F1z F2z F3z F4z real;
+% Define symbolic variables for forces at each point
+syms F1x F1y F1z F2x F2y F2z F3x F3y F3z F4x F4y F4z
 
-% Total load vector (in Newtons)
-total_load = [100, 50, 30];
+% Coordinates of the points (Assuming arbitrary values, modify as per your system)
+% For example, p1 at (1,0,0), p2 at (0,1,0), p3 at (-1,0,0), p4 at (0,-1,0)
+p1 = [1, 0, 0];
+p2 = [0, 1, 0];
+p3 = [-1, 0, 0];
+p4 = [0, -1, 0];
 
-% Define positions of forces relative to the point (in meters)
-position1 = [1, 0, 0];
-position2 = [0, 2, 0];
-position3 = [-3, 1, 0];
-position4 = [2, -1, 0];
+% Equilibrium equations for forces
+eq1 = F1x + F2x + F3x + F4x == 0;
+eq2 = F1y + F2y + F3y + F4y == 0;
+eq3 = F1z + F2z + F3z + F4z == 1500;
 
-% Define the objective function (to be minimized)
-objective = @(x) norm(cross(position1, [0, 0, x(1)])) + norm(cross(position2, [0, 0, x(2)])) + ...
-                norm(cross(position3, [0, 0, x(3)])) + norm(cross(position4, [0, 0, x(4)]));
+% Equilibrium equations for moments about origin (0,0,0)
+eq4 = dot(p1, cross([1,0,0], [F1x,F1y,F1z])) + dot(p2, cross([1,0,0], [F2x,F2y,F2z])) + ...
+      dot(p3, cross([1,0,0], [F3x,F3y,F3z])) + dot(p4, cross([1,0,0], [F4x,F4y,F4z])) == 0;
+eq5 = dot(p1, cross([0,1,0], [F1x,F1y,F1z])) + dot(p2, cross([0,1,0], [F2x,F2y,F2z])) + ...
+      dot(p3, cross([0,1,0], [F3x,F3y,F3z])) + dot(p4, cross([0,1,0], [F4x,F4y,F4z])) == 0;
+eq6 = dot(p1, cross([0,0,1], [F1x,F1y,F1z])) + dot(p2, cross([0,0,1], [F2x,F2y,F2z])) + ...
+      dot(p3, cross([0,0,1], [F3x,F3y,F3z])) + dot(p4, cross([0,0,1], [F4x,F4y,F4z])) == 0;
 
-% Define the nonlinear constraint function
-nonlcon = @(x) [x(1) + x(2) + x(3) + x(4) - total_load(3);
-                norm([0, 0, x(1)]) - eps;
-                norm([0, 0, x(2)]) - eps;
-                norm([0, 0, x(3)]) - eps;
-                norm([0, 0, x(4)]) - eps];
+% Solve the system of equations
+sol = solve([eq1, eq2, eq3, eq4, eq5, eq6], [F1x, F1y, F1z, F2x, F2y, F2z, F3x, F3y, F3z, F4x, F4y, F4z]);
 
-% Initial guess for the forces
-x0 = [1, 1, 1, 1];
-
-% Minimize the objective function subject to the constraints
-options = optimoptions('fmincon', 'Display', 'iter');
-x = fmincon(objective, x0, [], [], [], [], [], [], nonlcon, options);
-
-% Display the results
-disp(['Force 1: [0, 0, ', num2str(x(1)), ']']);
-disp(['Force 2: [0, 0, ', num2str(x(2)), ']']);
-disp(['Force 3: [0, 0, ', num2str(x(3)), ']']);
-disp(['Force 4: [0, 0, ', num2str(x(4)), ']']);
-
-
-
-
-
-
-
-
-
+% Display the solution
+disp(sol);
 
 
 
