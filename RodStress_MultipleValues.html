@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rod Stress Calculator</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 70%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        .input-container label, .input-container input {
+            margin-bottom: 10px;
+        }
+        .input-container input {
+            width: 100%;
+            padding: 10px;
+        }
+        button {
+            padding: 10px;
+            width: fit-content;
+            margin-right: 10px;
+        }
+        .results {
+            margin-top: 20px;
+            line-height: 1.5;
+        }
+        #chartContainer {
+            width: 100%;
+            height: 600px;
+        }
+        .buttons-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rod Stress Calculator</h1>
+        <div class="input-container">
+            <label for="force">Force (N):</label>
+            <input type="text" id="force" placeholder="Enter forces in N, separated by commas">
+
+            <label for="angle">Angle (degrees):</label>
+            <input type="text" id="angle" placeholder="Enter angles in degrees, separated by commas">
+
+            <label for="length">Length (mm):</label>
+            <input type="text" id="length" placeholder="Enter lengths in mm, separated by commas">
+
+            <label for="diameter">Diameter (mm):</label>
+            <input type="text" id="diameter" placeholder="Enter diameters in mm, separated by commas">
+        </div>
+        <div class="buttons-container">
+            <button onclick="calculate()">Calculate</button>
+            <button onclick="resetGraph()">Reset Graph</button>
+        </div>
+        <div id="output" class="results"></div>
+    </div>
+
+    <div class="container">
+        <h1>Graph</h1>
+        <div id="chartContainer">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let chart;
+
+        function calculate() {
+            const forceInput = document.getElementById('force').value;
+            const forces = forceInput.split(',').map(f => parseFloat(f.trim()));
+            const angleInput = document.getElementById('angle').value;
+            const angles = angleInput.split(',').map(a => parseFloat(a.trim()) * Math.PI / 180); // convert to radians
+            const lengthInput = document.getElementById('length').value;
+            const lengths = lengthInput.split(',').map(l => parseFloat(l.trim()));
+            const diameterInput = document.getElementById('diameter').value;
+            const diameters = diameterInput.split(',').map(d => parseFloat(d.trim()));
+            const k = 1.5;
+            const pi = Math.PI;
+
+            if (forces.some(isNaN) || angles.some(isNaN) || lengths.some(isNaN) || diameters.some(isNaN)) {
+                alert('Please enter valid positive numbers for all inputs.');
+                return;
+            }
+
+            const results = [];
+            forces.forEach(force => {
+                angles.forEach(angle => {
+                    lengths.forEach(length => {
+                        diameters.forEach(diameter => {
+                            // Calculate Fx and Fy
+                            const Fx = force * Math.cos(angle);
+                            const Fy = force * Math.sin(angle);
+
+                            // Step 1: Calculate the Cross-Sectional Area (A)
+                            const A = (pi * Math.pow(diameter, 2)) / 4;
+
+                            // Step 2: Calculate the Section Modulus (S)
+                            const S = (pi * Math.pow(diameter, 3)) / 32;
+
+                            // Step 3: Calculate Axial Stress (σa)
+                            const sigma_a = Fx / A;
+
+                            // Step 4: Calculate Bending Stress (σb)
+                            const M = Fy * length;
+                            const sigma_b = M / S;
+
+                            // Step 5: Calculate Transverse Shear Stress (τt)
+                            const tau_t = k * (Fy / A);
+
+                            // Step 6: Calculate von Mises Stress (σv)
+                            const sigma_v = Math.sqrt(Math.pow(sigma_a + sigma_b, 2) + 3 * Math.pow(tau_t, 2));
+
+                            results.push({ force, angle, length, diameter, sigma_v });
+                        });
+                    });
+                });
+            });
+
+            // Draw the graph
+            const ctx = document.getElementById('myChart').getContext('2d');
+            if (chart) {
+                chart.destroy();
+            }
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: results.map((r, index) => `F:${r.force}, α:${(r.angle * 180 / Math.PI).toFixed(2)}, L:${r.length}, d:${r.diameter}`),
+                    datasets: [{
+                        label: 'von Mises Stress (MPa)',
+                        data: results.map(r => r.sigma_v),
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `von Mises Stress: ${context.raw.toFixed(2)} MPa`;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            align: 'end',
+                            anchor: 'end',
+                            formatter: function(value) {
+                                return value.toFixed(2);
+                            }
+                        },
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'xy'
+                            },
+                            zoom: {
+                                enabled: true,
+                                mode: 'xy'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Input Combinations'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'von Mises Stress (MPa)'
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        function resetGraph() {
+            if (chart) {
+                chart.destroy();
+            }
+            document.getElementById('force').value = '';
+            document.getElementById('angle').value = '';
+            document.getElementById('length').value = '';
+            document.getElementById('diameter').value = '';
+            document.getElementById('output').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
