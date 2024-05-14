@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rod Stress Calculator</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
+    <style>
+        body { display: flex; font-family: Arial, sans-serif; margin: 0; padding: 0; height: 100vh; }
+        .container { width: 50%; padding: 20px; box-sizing: border-box; }
+        .input-container { display: flex; flex-direction: column; margin-bottom: 20px; }
+        .input-container label, .input-container input { margin-bottom: 10px; }
+        .input-container input { width: 50%; padding: 10px; }
+        button { padding: 10px; width: fit-content; }
+        .results { margin-top: 20px; line-height: 1.5; }
+        canvas { margin-top: 20px; max-width: 400px; max-height: 400px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rod Stress Calculator</h1>
+        <div class="input-container">
+            <label for="force">Force (N):</label>
+            <input type="number" id="force" placeholder="Enter force in N">
+            <label for="angle">Angle (degrees):</label>
+            <input type="number" id="angle" placeholder="Enter angle in degrees">
+            <label for="length">Length (mm):</label>
+            <input type="number" id="length" placeholder="Enter length in mm">
+            <label for="diameter">Diameter (mm):</label>
+            <input type="number" id="diameter" placeholder="Enter diameter in mm">
+            <button onclick="calculate()">Calculate</button>
+        </div>
+        <canvas id="forceChart"></canvas>
+        <div id="output" class="results"></div>
+    </div>
+
+    <div class="container">
+        <h1>Explanation</h1>
+        <p>The stress calculations for a rod subjected to axial force, bending moment, and shear force involve several steps. The key equations and steps are detailed below:</p>
+        <p><strong>Step 1:</strong> Calculate the Cross-Sectional Area (\(A\))</p>
+        <p>\[
+        A = \frac{\pi d^2}{4}
+        \]</p>
+        <p><strong>Step 2:</strong> Calculate the Section Modulus (\(S\))</p>
+        <p>\[
+        S = \frac{\pi d^3}{32}
+        \]</p>
+        <p><strong>Step 3:</strong> Calculate Axial Stress (\(\sigma_a\))</p>
+        <p>\[
+        \sigma_a = \frac{F}{A}
+        \]</p>
+        <p><strong>Step 4:</strong> Calculate Bending Stress (\(\sigma_b\))</p>
+        <p>\[
+        M = F \times L \quad \text{and} \quad \sigma_b = \frac{M}{S}
+        \]</p>
+        <p><strong>Step 5:</strong> Calculate Transverse Shear Stress (\(\tau_t\))</p>
+        <p>\[
+        \tau_t = k \cdot \left(\frac{V}{A}\right)
+        \]</p>
+        <p><strong>Step 6:</strong> Calculate von Mises Stress (\(\sigma_v\))</p>
+        <p>\[
+        \sigma_v = \sqrt{(\sigma_a + \sigma_b)^2 + 3\tau_t^2}
+        \]</p>
+    </div>
+
+    <script>
+        let chart;
+        function calculate() {
+            const force = parseFloat(document.getElementById('force').value);
+            const angle = parseFloat(document.getElementById('angle').value) * Math.PI / 180;
+            const length = parseFloat(document.getElementById('length').value);
+            const diameter = parseFloat(document.getElementById('diameter').value);
+            const k = 1.5, pi = Math.PI;
+            if ([force, angle, length, diameter].some(v => isNaN(v) || v <= 0)) {
+                alert('Please enter valid positive numbers for all inputs.');
+                return;
+            }
+
+            const Fx = force * Math.cos(angle), Fy = force * Math.sin(angle);
+            const A = pi * Math.pow(diameter, 2) / 4;
+            const S = pi * Math.pow(diameter, 3) / 32;
+            const sigma_a = Fx / A;
+            const M = Fy * length, sigma_b = M / S;
+            const tau_t = k * Fy / A;
+            const sigma_v = Math.sqrt(Math.pow(sigma_a + sigma_b, 2) + 3 * Math.pow(tau_t, 2));
+
+            drawChart(Fx, Fy);
+
+            document.getElementById('output').innerHTML = `
+                <p><strong>Results:</strong></p>
+                <p><strong>Force Components:</strong><br>Fx = ${force.toFixed(2)} cos(${(angle * 180 / Math.PI).toFixed(2)}) ≈ ${Fx.toFixed(2)} N<br>Fy = ${force.toFixed(2)} sin(${(angle * 180 / Math.PI).toFixed(2)}) ≈ ${Fy.toFixed(2)} N</p>
+                <p><strong>Step 1:</strong> Cross-Sectional Area (A)<br>A = π(${diameter})²/4 ≈ ${A.toFixed(2)} mm²</p>
+                <p><strong>Step 2:</strong> Section Modulus (S)<br>S = π(${diameter})³/32 ≈ ${S.toFixed(2)} mm³</p>
+                <p><strong>Step 3:</strong> Axial Stress (σa)<br>σa = ${Fx.toFixed(2)}/${A.toFixed(2)} ≈ ${sigma_a.toFixed(2)} MPa</p>
+                <p><strong>Step 4:</strong> Bending Stress (σb)<br>M = ${Fy.toFixed(2)} × ${length} = ${M.toFixed(2)} N·mm<br>σb = ${M.toFixed(2)}/${S.toFixed(2)} ≈ ${sigma_b.toFixed(2)} MPa</p>
+                <p><strong>Step 5:</strong> Transverse Shear Stress (τt)<br>τt = ${k} · (${Fy.toFixed(2)}/${A.toFixed(2)}) ≈ ${tau_t.toFixed(2)} MPa</p>
+                <p><strong>Step 6:</strong> von Mises Stress (σv)<br>σv = √[(${sigma_a.toFixed(2)} + ${sigma_b.toFixed(2)})² + 3(${tau_t.toFixed(2)})²] ≈ ${sigma_v.toFixed(2)} MPa</p>
+                <p><strong>Therefore, the von Mises stress for the given rod is approximately ${sigma_v.toFixed(2)} MPa.</strong></p>
+            `;
+
+            MathJax.typeset();
+        }
+
+        function drawChart(Fx, Fy) {
+            const ctx = document.getElementById('forceChart').getContext('2d');
+            if (chart) chart.destroy();
+
+            const maxVal = Math.max(Math.abs(Fx), Math.abs(Fy)) * 1.2;
+
+            chart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        { label: 'Fx', data: [{ x: 0, y: 0 }, { x: Fx, y: 0 }], borderColor: 'red', fill: false, showLine: true },
+                        { label: 'Fy', data: [{ x: 0, y: 0 }, { x: 0, y: Fy }], borderColor: 'blue', fill: false, showLine: true },
+                        { label: 'Force', data: [{ x: 0, y: 0 }, { x: Fx, y: Fy }], borderColor: 'green', fill: false, showLine: true }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: { type: 'linear', position: 'bottom', min: -maxVal * 0.1, max: maxVal, ticks: { stepSize: maxVal / 10 } },
+                        y: { min: -maxVal * 0.1, max: maxVal, ticks: { stepSize: maxVal / 10 } }
+                    },
+                    aspectRatio: 1,
+                    plugins: {
+                        annotation: {
+                            annotations: {
+                                point1: { type: 'point', xValue: Fx, yValue: 0, backgroundColor: 'red', radius: 5, label: { content: `(${Fx.toFixed(2)}, 0)`, enabled: true, position: 'end' } },
+                                point2: { type: 'point', xValue: 0, yValue: Fy, backgroundColor: 'blue', radius: 5, label: { content: `(0, ${Fy.toFixed(2)})`, enabled: true, position: 'end' } },
+                                point3: { type: 'point', xValue: Fx, yValue: Fy, backgroundColor: 'green', radius: 5, label: { content: `(${Fx.toFixed(2)}, ${Fy.toFixed(2)})`, enabled: true, position: 'end' } }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
