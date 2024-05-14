@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rod Stress Calculator</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+        .container {
+            width: 50%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        .input-container label, .input-container input {
+            margin-bottom: 10px;
+        }
+        .input-container input {
+            width: 50%;
+            padding: 10px;
+        }
+        button {
+            padding: 10px;
+            width: fit-content;
+        }
+        .results {
+            margin-top: 20px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rod Stress Calculator</h1>
+        <div class="input-container">
+            <label for="force">Axial Force (N):</label>
+            <input type="number" id="force" placeholder="Enter force in N">
+
+            <label for="length">Length (mm):</label>
+            <input type="number" id="length" placeholder="Enter length in mm">
+
+            <label for="diameter">Diameter (mm):</label>
+            <input type="number" id="diameter" placeholder="Enter diameter in mm">
+
+            <button onclick="calculate()">Calculate</button>
+        </div>
+
+        <div id="output" class="results"></div>
+    </div>
+
+    <div class="container">
+        <h1>Explanation</h1>
+        <p>The stress calculations for a rod subjected to axial force, bending moment, and shear force involve several steps. The key equations and steps are detailed below:</p>
+        <p><strong>Step 1:</strong> Calculate the Cross-Sectional Area (\(A\))</p>
+        <p>\[
+        A = \frac{\pi d^2}{4}
+        \]</p>
+        <p><strong>Step 2:</strong> Calculate the Section Modulus (\(S\))</p>
+        <p>\[
+        S = \frac{\pi d^3}{32}
+        \]</p>
+        <p><strong>Step 3:</strong> Calculate Axial Stress (\(\sigma_a\))</p>
+        <p>\[
+        \sigma_a = \frac{F}{A}
+        \]</p>
+        <p><strong>Step 4:</strong> Calculate Bending Stress (\(\sigma_b\))</p>
+        <p>\[
+        M = F \times L \quad \text{and} \quad \sigma_b = \frac{M}{S}
+        \]</p>
+        <p><strong>Step 5:</strong> Calculate Transverse Shear Stress (\(\tau_t\))</p>
+        <p>\[
+        \tau_t = k \cdot \left(\frac{V}{A}\right)
+        \]</p>
+        <p><strong>Step 6:</strong> Calculate von Mises Stress (\(\sigma_v\))</p>
+        <p>\[
+        \sigma_v = \sqrt{(\sigma_a + \sigma_b)^2 + 3\tau_t^2}
+        \]</p>
+    </div>
+
+    <script>
+        function calculate() {
+            const force = parseFloat(document.getElementById('force').value);
+            const length = parseFloat(document.getElementById('length').value);
+            const diameter = parseFloat(document.getElementById('diameter').value);
+            const k = 1.5;
+            const pi = Math.PI;
+
+            if (isNaN(force) || isNaN(length) || isNaN(diameter) || force <= 0 || length <= 0 || diameter <= 0) {
+                alert('Please enter valid positive numbers for all inputs.');
+                return;
+            }
+
+            // Step 1: Calculate the Cross-Sectional Area (A)
+            const A = (pi * Math.pow(diameter, 2)) / 4;
+
+            // Step 2: Calculate the Section Modulus (S)
+            const S = (pi * Math.pow(diameter, 3)) / 32;
+
+            // Step 3: Calculate Axial Stress (σa)
+            const sigma_a = force / A;
+
+            // Step 4: Calculate Bending Stress (σb)
+            const M = force * length;
+            const sigma_b = M / S;
+
+            // Step 5: Calculate Transverse Shear Stress (τt)
+            const tau_t = k * (force / A);
+
+            // Step 6: Calculate von Mises Stress (σv)
+            const sigma_v = Math.sqrt(Math.pow(sigma_a + sigma_b, 2) + 3 * Math.pow(tau_t, 2));
+
+            // Update results in the DOM
+            const output = `
+                <p><strong>Results:</strong></p>
+                <p><strong>Step 1:</strong> Cross-Sectional Area (A)<br>
+                A = πd²/4 = π(${diameter})²/4 ≈ ${A.toFixed(2)} mm²</p>
+
+                <p><strong>Step 2:</strong> Section Modulus (S)<br>
+                S = πd³/32 = π(${diameter})³/32 ≈ ${S.toFixed(2)} mm³</p>
+
+                <p><strong>Step 3:</strong> Axial Stress (σa)<br>
+                σa = F/A = ${force}/${A.toFixed(2)} ≈ ${sigma_a.toFixed(2)} MPa</p>
+
+                <p><strong>Step 4:</strong> Bending Stress (σb)<br>
+                M = F × L = ${force} × ${length} = ${M.toFixed(2)} N·mm<br>
+                σb = M/S = ${M.toFixed(2)}/${S.toFixed(2)} ≈ ${sigma_b.toFixed(2)} MPa</p>
+
+                <p><strong>Step 5:</strong> Transverse Shear Stress (τt)<br>
+                τt = k · (V/A) = ${k} · (${force}/${A.toFixed(2)}) ≈ ${tau_t.toFixed(2)} MPa</p>
+
+                <p><strong>Step 6:</strong> von Mises Stress (σv)<br>
+                σv = √[(σa + σb)² + 3τt²] ≈ √[(${sigma_a.toFixed(2)} + ${sigma_b.toFixed(2)})² + 3(${tau_t.toFixed(2)})²] ≈ ${sigma_v.toFixed(2)} MPa</p>
+
+                <p><strong>Therefore, the von Mises stress for the given rod is approximately ${sigma_v.toFixed(2)} MPa.</strong></p>
+            `;
+
+            document.getElementById('output').innerHTML = output;
+
+            // Trigger MathJax to render the new content
+            MathJax.typeset();
+        }
+    </script>
+</body>
+</html>
