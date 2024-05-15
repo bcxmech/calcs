@@ -44,9 +44,12 @@
         <p>\[
         A = \frac{\pi d^2}{4}
         \]</p>
-        <p><strong>Step 2:</strong> Calculate the Section Modulus (\(S\))</p>
+        <p><strong>Step 2:</strong> Calculate the Section Modulus (\(S\)) and Moment of Inertia (\(I\))</p>
         <p>\[
         S = \frac{\pi d^3}{32}
+        \]</p>
+        <p>\[
+        I = \frac{\pi d^4}{64}
         \]</p>
         <p><strong>Step 3:</strong> Calculate Axial Stress (\(\sigma_a\))</p>
         <p>\[
@@ -58,7 +61,7 @@
         \]</p>
         <p><strong>Step 5:</strong> Calculate Transverse Shear Stress (\(\tau_t\))</p>
         <p>\[
-        \tau_t = k \cdot \left(\frac{V}{A}\right)
+        \tau_t = \frac{4}{3} \cdot \left(\frac{V}{A}\right)
         \]</p>
         <p><strong>Step 6:</strong> Calculate von Mises Stress (\(\sigma_v\))</p>
         <p>\[
@@ -73,7 +76,7 @@
             const angle = parseFloat(document.getElementById('angle').value) * Math.PI / 180;
             const length = parseFloat(document.getElementById('length').value);
             const diameter = parseFloat(document.getElementById('diameter').value);
-            const k = 1.5, pi = Math.PI;
+            const k = 4/3, pi = Math.PI;
             if ([force, angle, length, diameter].some(v => isNaN(v) || v <= 0)) {
                 alert('Please enter valid positive numbers for all inputs.');
                 return;
@@ -82,6 +85,7 @@
             const Fx = force * Math.cos(angle), Fy = force * Math.sin(angle);
             const A = pi * Math.pow(diameter, 2) / 4;
             const S = pi * Math.pow(diameter, 3) / 32;
+            const I = pi * Math.pow(diameter, 4) / 64;
             const sigma_a = Fx / A;
             const M = Fy * length, sigma_b = M / S;
             const tau_t = k * Fy / A;
@@ -93,10 +97,10 @@
                 <p><strong>Results:</strong></p>
                 <p><strong>Force Components:</strong><br>Fx = ${force.toFixed(2)} cos(${(angle * 180 / Math.PI).toFixed(2)}) ≈ ${Fx.toFixed(2)} N<br>Fy = ${force.toFixed(2)} sin(${(angle * 180 / Math.PI).toFixed(2)}) ≈ ${Fy.toFixed(2)} N</p>
                 <p><strong>Step 1:</strong> Cross-Sectional Area (A)<br>A = π(${diameter})²/4 ≈ ${A.toFixed(2)} mm²</p>
-                <p><strong>Step 2:</strong> Section Modulus (S)<br>S = π(${diameter})³/32 ≈ ${S.toFixed(2)} mm³</p>
+                <p><strong>Step 2:</strong> Section Modulus (S)<br>S = π(${diameter})³/32 ≈ ${S.toFixed(2)} mm³<br>Moment of Inertia (I)<br>I = π(${diameter})⁴/64 ≈ ${I.toFixed(2)} mm⁴</p>
                 <p><strong>Step 3:</strong> Axial Stress (σa)<br>σa = ${Fx.toFixed(2)}/${A.toFixed(2)} ≈ ${sigma_a.toFixed(2)} MPa</p>
                 <p><strong>Step 4:</strong> Bending Stress (σb)<br>M = ${Fy.toFixed(2)} × ${length} = ${M.toFixed(2)} N·mm<br>σb = ${M.toFixed(2)}/${S.toFixed(2)} ≈ ${sigma_b.toFixed(2)} MPa</p>
-                <p><strong>Step 5:</strong> Transverse Shear Stress (τt)<br>τt = ${k} · (${Fy.toFixed(2)}/${A.toFixed(2)}) ≈ ${tau_t.toFixed(2)} MPa</p>
+                <p><strong>Step 5:</strong> Transverse Shear Stress (τt)<br>τt = ${k.toFixed(2)} · (${Fy.toFixed(2)}/${A.toFixed(2)}) ≈ ${tau_t.toFixed(2)} MPa</p>
                 <p><strong>Step 6:</strong> von Mises Stress (σv)<br>σv = √[(${sigma_a.toFixed(2)} + ${sigma_b.toFixed(2)})² + 3(${tau_t.toFixed(2)})²] ≈ ${sigma_v.toFixed(2)} MPa</p>
                 <p><strong>Therefore, the von Mises stress for the given rod is approximately ${sigma_v.toFixed(2)} MPa.</strong></p>
             `;
