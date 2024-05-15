@@ -2,121 +2,158 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Determining Preload for a Bolt</title>
-    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
-    <script type="text/x-mathjax-config">
-        MathJax.Hub.Config({
-            tex2jax: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']],
-                processEscapes: true
-            }
-        });
-    </script>
+    <title>Von Mises Stress Calculation</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
+    <h1>Step-by-Step Guide with von Mises Stress Calculation</h1>
 
-<h1>Determining Preload for a Bolt</h1>
+    <h2>Given:</h2>
+    <ul>
+        <li><strong>Bolt Size:</strong> M12</li>
+        <li><strong>Bolt Grade:</strong> 8.8</li>
+        <li><strong>Bolt Material:</strong> Steel</li>
+        <li><strong>Preload (F<sub>pre</sub>):</strong> 40.5 kN</li>
+        <li><strong>Axial Load (F<sub>axial</sub>):</strong> 10 kN</li>
+        <li><strong>Lateral Force (F<sub>lateral</sub>):</strong> 1 kN</li>
+        <li><strong>Bolt Length (L):</strong> 50 mm</li>
+        <li><strong>Distance from Bolt to Force Application Point (e):</strong> 50 mm = 0.05 m</li>
+    </ul>
 
-<p>Determining the preload (pretension) in a bolt is crucial for ensuring the proper performance and safety of the bolted joint. The preload is typically determined based on the desired clamping force and the properties of the bolt. Here’s a step-by-step guide to determining the preload for a bolted joint:</p>
+    <h2>Unit Conversion</h2>
+    <p>Convert all measurements to consistent units (meters and Newtons).</p>
+    <ul>
+        <li><strong>Bolt Diameter (d):</strong> 12 mm = 0.012 m</li>
+        <li><strong>Minor Diameter (d<sub>min</sub>):</strong> 10 mm = 0.01 m</li>
+        <li><strong>Lateral Force (F<sub>lateral</sub>):</strong> 1 kN = 1000 N</li>
+    </ul>
 
-<h2>Step-by-Step Guide to Determining Preload</h2>
+    <h2>Calculations</h2>
 
-<ol>
-    <li>
-        <strong>Determine the Bolt Size and Material:</strong>
-        <ul>
-            <li><strong>Bolt Size:</strong> e.g., M12</li>
-            <li><strong>Bolt Grade:</strong> e.g., 8.8</li>
-            <li><strong>Bolt Material:</strong> e.g., Steel</li>
-        </ul>
-    </li>
-    <li>
-        <strong>Find the Tensile Stress Area ($A_t$):</strong>
-        <p>The tensile stress area depends on the bolt size and can be found in standard tables. For an M12 bolt:</p>
-        <p>$A_t \approx 84.3 \, \text{mm}^2$</p>
-    </li>
-    <li>
-        <strong>Determine the Proof Load ($f_p$):</strong>
-        <p>The proof load is a fraction of the tensile strength of the bolt material. For Grade 8.8 bolts, the proof load is typically 80% of the ultimate tensile strength.</p>
-        <ul>
-            <li><strong>Ultimate Tensile Strength ($f_{ub}$):</strong> 800 MPa</li>
-            <li><strong>Proof Load ($f_p$):</strong> 640 MPa (80% of 800 MPa)</li>
-        </ul>
-    </li>
-    <li>
-        <strong>Calculate the Preload ($F_{pre}$):</strong>
-        <p>The preload is often a percentage of the proof load to avoid overstressing the bolt. A common recommendation is to use 75-90% of the proof load.</p>
-        <p>$F_{pre} = 0.75 \times f_p \times A_t$</p>
-        <p>Where:</p>
-        <ul>
-            <li>$f_p$: Proof Load (MPa)</li>
-            <li>$A_t$: Tensile Stress Area (mm²)</li>
-        </ul>
-        <p>Let's calculate the preload using 75% of the proof load:</p>
-        <p>$F_{pre} = 0.75 \times 640 \, \text{MPa} \times 84.3 \, \text{mm}^2$</p>
-        <p>$F_{pre} = 0.75 \times 640 \times 84.3 \, \text{N}$</p>
-        <p>$F_{pre} = 0.75 \times 53952 \, \text{N}$</p>
-        <p>$F_{pre} = 40464 \, \text{N}$</p>
-        <p>$F_{pre} = 40.5 \, \text{kN}$</p>
-    </li>
-    <li>
-        <strong>Calculate the Required Tightening Torque ($T$):</strong>
-        <p>The torque required to achieve the desired preload can be estimated using the following formula:</p>
-        <p>$T = K \cdot F_{pre} \cdot d$</p>
-        <p>Where:</p>
-        <ul>
-            <li>$K$: Torque coefficient (commonly 0.2 for steel bolts with lubrication)</li>
-            <li>$F_{pre}$: Preload (N)</li>
-            <li>$d$: Bolt diameter (m)</li>
-        </ul>
-        <p>For an M12 bolt ($d = 12 \times 10^{-3} \, \text{m}$):</p>
-        <p>$T = 0.2 \cdot 40464 \, \text{N} \cdot 12 \times 10^{-3} \, \text{m}$</p>
-        <p>$T = 0.2 \cdot 40464 \cdot 0.012$</p>
-        <p>$T = 97.1 \, \text{Nm}$</p>
-    </li>
-</ol>
+    <h3>1. Preload Stress (\(\sigma_{PL}\)):</h3>
+    <p>
+        \[
+        \sigma_{PL} = \frac{F_{pre}}{A_t}
+        \]
+        Where \( A_t \) is the tensile stress area. For an M12 bolt, \( A_t \approx 84.3 \, \text{mm}^2 = 84.3 \times 10^{-6} \, \text{m}^2 \):
+        \[
+        \sigma_{PL} = \frac{40.5 \times 10^3 \, \text{N}}{84.3 \times 10^{-6} \, \text{m}^2}
+        \]
+        \[
+        \sigma_{PL} \approx 480.4 \, \text{MPa}
+        \]
+    </p>
 
-<h2>Additional Considerations</h2>
+    <h3>2. Axial Stress (\(\sigma_t\)):</h3>
+    <p>
+        \[
+        \sigma_t = \frac{F_{axial}}{A_t}
+        \]
+        \[
+        \sigma_t = \frac{10 \times 10^3 \, \text{N}}{84.3 \times 10^{-6} \, \text{m}^2}
+        \]
+        \[
+        \sigma_t \approx 118.6 \, \text{MPa}
+        \]
+    </p>
 
-<p>Because the tensile force that will be applied to the joint dictates the required preload, the maximum utility is obtained from a bolt by preloading it to the highest possible value. The ductility of the bolt material dictates how close to the yield strength the bolt can be preloaded. Shigley and Lindeburg recommend the following (conservative) values of preload:</p>
+    <h3>3. Transverse Shear Stress (\(\tau_{sh}\)):</h3>
+    <p>
+        Using the formula for transverse shear stress:
+        \[
+        \tau_{sh} = \frac{4}{3} \cdot \frac{F_{\text{lateral}}}{A_t}
+        \]
+        \[
+        \tau_{sh} = \frac{4}{3} \cdot \frac{1000 \, \text{N}}{84.3 \times 10^{-6} \, \text{m}^2}
+        \]
+        \[
+        \tau_{sh} = \frac{4}{3} \cdot 11.9 \, \text{MPa}
+        \]
+        \[
+        \tau_{sh} \approx 15.9 \, \text{MPa}
+        \]
+    </p>
 
-<p>
-    $F_{PL} = 
-    \begin{cases} 
-    0.75 \, F_{proof} & \text{for nonpermanent joint (reused fasteners)} \\
-    0.90 \, F_{proof} & \text{for permanent joints}
-    \end{cases}$
-</p>
+    <h3>4. Bending Moment</h3>
+    <p>
+        The lateral force also causes a bending moment:
+        \[
+        M = F_{\text{lateral}} \times e
+        \]
+        \[
+        M = 1000 \, \text{N} \times 0.05 \, \text{m}
+        \]
+        \[
+        M = 50 \, \text{N} \cdot \text{m}
+        \]
+    </p>
 
-<p>Where $F_{proof}$ is the proof load of the fastener. The relationship between the proof load and the proof strength, $S_{proof}$, is:</p>
+    <h3>5. Bending Stress (\(\sigma_{bnd}\)):</h3>
+    <p>
+        Using the minor diameter \( d_{min} = 0.01 \, \text{m} \):
+        \[
+        \sigma_{bnd} = \frac{32 M}{\pi d_{min}^3}
+        \]
+        \[
+        \sigma_{bnd} = \frac{32 \cdot 50 \, \text{N} \cdot \text{m}}{\pi (0.01 \, \text{m})^3}
+        \]
+        \[
+        \sigma_{bnd} = \frac{1600 \, \text{N} \cdot \text{m}}{\pi \cdot 1 \times 10^{-6} \, \text{m}^3}
+        \]
+        \[
+        \sigma_{bnd} = \frac{1600 \times 10^6 \, \text{N/m}^2}{3.14159}
+        \]
+        \[
+        \sigma_{bnd} \approx 509 \, \text{MPa}
+        \]
+    </p>
 
-<p>$F_{proof} = S_{proof} \cdot A_t$</p>
+    <h3>6. Combined von Mises Stress (\(\sigma_{vM}\)):</h3>
+    <p>
+        Using the given formula:
+        \[
+        \sigma_{vM} = \sqrt{[\sigma_{PL} + n(\sigma_t + \sigma_{bnd})]^2 + 3(n \tau_{sh})^2}
+        \]
+        Where \( n \) is a load factor, typically \( n = 1 \).
 
-<p>Per Shigley, the proof strength is approximately equal to 85% of the tensile yield strength, $S_{ty}$. Based on $S_{proof} = 0.85 \cdot S_{ty}$, the recommended preload force as a function of yield strength is:</p>
+        Substitute the values:
+        \[
+        \sigma_{vM} = \sqrt{[480.4 + 1(118.6 + 509)]^2 + 3(1 \cdot 15.9)^2}
+        \]
+        \[
+        \sigma_{vM} = \sqrt{[480.4 + 627.6]^2 + 3(15.9)^2}
+        \]
+        \[
+        \sigma_{vM} = \sqrt{[1108]^2 + 3(15.9)^2}
+        \]
+        \[
+        \sigma_{vM} = \sqrt{[1108]^2 + 3 \cdot 252.81}
+        \]
+        \[
+        \sigma_{vM} = \sqrt{1227664 + 758.43}
+        \]
+        \[
+        \sigma_{vM} = \sqrt{1228422.43}
+        \]
+        \[
+        \sigma_{vM} \approx 1108 \, \text{MPa}
+        \]
+    </p>
 
-<p>
-    $F_{PL} = 
-    \begin{cases} 
-    0.64 \, S_{ty} \cdot A_t & \text{for nonpermanent joint (reused fasteners)} \\
-    0.77 \, S_{ty} \cdot A_t & \text{for permanent joints}
-    \end{cases}$
-</p>
+    <h2>Summary</h2>
+    <ul>
+        <li><strong>Bolt Size and Grade:</strong> M12, Grade 8.8</li>
+        <li><strong>Tensile Stress Area:</strong> 84.3 mm²</li>
+        <li><strong>Proof Load:</strong> 640 MPa</li>
+        <li><strong>Preload:</strong> 40.5 kN (using 75% of the proof load)</li>
+        <li><strong>Required Tightening Torque:</strong> 97.1 Nm</li>
+        <li><strong>Axial Load Contribution:</strong> 10 kN</li>
+        <li><strong>Transverse Shear Stress due to Lateral Force:</strong> 15.9 MPa</li>
+        <li><strong>Bending Stress due to Lateral Force:</strong> 509 MPa</li>
+        <li><strong>Combined von Mises Stress:</strong> 1108 MPa</li>
+    </ul>
 
-<p>Considering that the above values are conservative, a general rule of thumb is to preload the fastener to $\frac{2}{3}$ of the yield strength (i.e., $\%_{yield} = 66.7\%$).</p>
-
-<h2>Summary</h2>
-
-<ul>
-    <li><strong>Bolt Size and Grade:</strong> M12, Grade 8.8</li>
-    <li><strong>Tensile Stress Area:</strong> 84.3 mm²</li>
-    <li><strong>Proof Load:</strong> 640 MPa</li>
-    <li><strong>Preload:</strong> 40.5 kN (using 75% of the proof load)</li>
-    <li><strong>Required Tightening Torque:</strong> 97.1 Nm</li>
-</ul>
-
-<p>This preload ensures that the bolt is properly tensioned without exceeding its proof load, providing a reliable and secure joint. If different conditions or bolt sizes are involved, similar calculations can be applied using the respective values.</p>
-
+    <p>This detailed analysis ensures that the bolt is properly tensioned and can withstand the combined effects of preload, axial load, shear, and bending moments, providing a reliable and secure joint.</p>
 </body>
 </html>
