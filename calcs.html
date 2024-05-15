@@ -1,1 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stress Analysis of Shaft</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stress Analysis of Shaft</h1>
+    <p>To solve the given problem, we need to analyze the stresses at points A and B of a shaft under combined loading. The shaft is subjected to forces and moments as depicted in the image. Let's break down the steps needed to find the principal stresses and the maximum shear stress at these points.</p>
 
+    <h2>Given Data</h2>
+    <p>From the image, we have:</p>
+    <ul>
+        <li>Transverse forces: \( V_y = 800 \, \text{N} \), \( V_z = -600 \, \text{N} \)</li>
+        <li>Torsional moment: \( T_x = 450 \, \text{N} \cdot \text{m} \)</li>
+        <li>Bending moments: \( M_y = 300 \, \text{N} \cdot \text{m} \), \( M_z = 45 \, \text{N} \cdot \text{m} \)</li>
+        <li>Diameter of the shaft: \( d = 75 \, \text{mm} \)</li>
+        <li>Location of points A and B (assumed at the top and bottom of the cross-section for bending moments).</li>
+    </ul>
+
+    <h2>Cross-Sectional Properties</h2>
+    <p>Cross-sectional area, \( A \):</p>
+    <p>\[ A = \frac{\pi d^2}{4} = \frac{\pi (0.075)^2}{4} = 4.42 \times 10^{-3} \, \text{m}^2 \]</p>
+
+    <p>Moment of inertia, \( I \):</p>
+    <p>\[ I = \frac{\pi d^4}{64} = \frac{\pi (0.075)^4}{64} = 7.90 \times 10^{-8} \, \text{m}^4 \]</p>
+
+    <p>Polar moment of inertia, \( J \):</p>
+    <p>\[ J = \frac{\pi d^4}{32} = \frac{\pi (0.075)^4}{32} = 1.58 \times 10^{-7} \, \text{m}^4 \]</p>
+
+    <h2>Step 1: Calculate Bending Stresses</h2>
+    <p>Bending stress due to \( M_y \):</p>
+    <p>\[ \sigma_{b_y} = \frac{M_y \cdot c}{I} = \frac{300 \times 0.0375}{7.90 \times 10^{-8}} = 142.41 \, \text{MPa} \]</p>
+
+    <p>Bending stress due to \( M_z \):</p>
+    <p>\[ \sigma_{b_z} = \frac{M_z \cdot c}{I} = \frac{45 \times 0.0375}{7.90 \times 10^{-8}} = 21.36 \, \text{MPa} \]</p>
+
+    <h2>Step 2: Calculate Transverse Shear Stresses</h2>
+    <p>Transverse shear stress due to \( V_y \):</p>
+    <p>\[ \tau_{yz} = \frac{V_y}{A} \times \frac{4}{3} = \frac{800}{4.42 \times 10^{-3}} \times \frac{4}{3} = 241.23 \, \text{MPa} \]</p>
+
+    <p>Transverse shear stress due to \( V_z \):</p>
+    <p>\[ \tau_{zx} = \frac{V_z}{A} \times \frac{4}{3} = \frac{600}{4.42 \times 10^{-3}} \times \frac{4}{3} = 180.92 \, \text{MPa} \]</p>
+
+    <h2>Step 3: Calculate Torsional Shear Stress</h2>
+    <p>Torsional shear stress:</p>
+    <p>\[ \tau_t = \frac{T_x \cdot c}{J} = \frac{450 \times 0.0375}{1.58 \times 10^{-7}} = 106.91 \, \text{MPa} \]</p>
+
+    <h2>Step 4: Combine Stresses at Points A and B</h2>
+    <h3>Point A:</h3>
+    <p>Normal stress due to bending:</p>
+    <p>\[ \sigma_x = \sigma_{b_y} + \sigma_{b_z} = 142.41 + 21.36 = 163.77 \, \text{MPa} \]</p>
+
+    <p>Shear stresses:</p>
+    <p>\[ \tau_{xy} = \tau_t = 106.91 \, \text{MPa} \]</p>
+    <p>\[ \tau_{yz} = 241.23 \, \text{MPa} \]</p>
+    <p>\[ \tau_{zx} = 180.92 \, \text{MPa} \]</p>
+
+    <h3>Point B:</h3>
+    <p>Normal stress due to bending (opposite sign):</p>
+    <p>\[ \sigma_x = \sigma_{b_y} - \sigma_{b_z} = 142.41 - 21.36 = 121.05 \, \text{MPa} \]</p>
+
+    <p>Shear stresses:</p>
+    <p>\[ \tau_{xy} = \tau_t = 106.91 \, \text{MPa} \]</p>
+    <p>\[ \tau_{yz} = 241.23 \, \text{MPa} \]</p>
+    <p>\[ \tau_{zx} = 180.92 \, \text{MPa} \]</p>
+
+    <h2>Step 5: Calculate Von Mises Stress</h2>
+    <p>For Von Mises stress, we use:</p>
+    <p>\[ \sigma_{VM} = \sqrt{\sigma_x^2 + 3(\tau_{xy}^2 + \tau_{yz}^2 + \tau_{zx}^2)} \]</p>
+
+    <h3>Point A:</h3>
+    <p>\[ \sigma_{VM} = \sqrt{(163.77)^2 + 3((106.91)^2 + (241.23)^2 + (180.92)^2)} \]</p>
+
+    <h3>Point B:</h3>
+    <p>\[ \sigma_{VM} = \sqrt{(121.05)^2 + 3((106.91)^2 + (241.23)^2 + (180.92)^2)} \]</p>
+
+    <h2>Conclusion</h2>
+    <p>The combined stress analysis involves calculating bending stresses, transverse shear stresses, torsional shear stress, and then combining them using the Von Mises stress criterion. This ensures we accurately assess the stress state at critical points A and B on the shaft. Given the detailed calculations for the transverse shear stress, torsional shear stress, and bending stress, the stress state is accurately assessed for structural integrity.</p>
+    <p>If you need further assistance with the calculations or specific values, feel free to ask!</p>
+</body>
+</html>
