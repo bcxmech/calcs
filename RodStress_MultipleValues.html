@@ -98,7 +98,7 @@
             const lengths = lengthInput.split(',').map(l => parseFloat(l.trim()));
             const diameterInput = document.getElementById('diameter').value;
             const diameters = diameterInput.split(',').map(d => parseFloat(d.trim()));
-            const k = 1.5;
+            const k = 4 / 3;
             const pi = Math.PI;
 
             if (forces.some(isNaN) || angles.some(isNaN) || lengths.some(isNaN) || diameters.some(isNaN)) {
